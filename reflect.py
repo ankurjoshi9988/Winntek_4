@@ -1,9 +1,10 @@
 from flask import request, jsonify, session
 from flask_login import login_required, current_user
 import random, uuid
+from datetime import datetime
 import azure.cognitiveservices.speech as speechsdk
 import asyncio
-from models import Product, ReferConversation, Conversation  # Adjust based on your project structure
+from models import Product, ReferConversation, Conversation, ReferFeedback, ReferMessage  # Adjust based on your project structure
 from flask import Blueprint
 import os
 import google.generativeai as genai
@@ -11,7 +12,6 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_google_genai import ChatGoogleGenerativeAI
 from flask import current_app
-from conversation_service import start_conversation, add_message, close_conversation, get_past_conversations, start_refer_conversation, add_refer_message, generate_refer_feedback
 from extensions import login_manager, csrf, mail, oauth, db
 
 # Blueprints
@@ -48,23 +48,11 @@ def add_refer_message():
         current_app.logger.error("Invalid request: Missing conversation_id, sender, or content")
         return jsonify({'error': 'Invalid request'}), 400
 
-    add_message(conversation_id, sender, content)
+    #add_message(conversation_id, sender, content)
     return jsonify({'status': 'Message added'}), 200
 
 
-# Route to close refer conversation and generate feedback
-@reflect_bp.route('/close_refer_conversation', methods=['POST'])
-@login_required
-async def close_refer_conversation_route():
-    data = request.json
-    conversation_id = data.get('conversation_id')
 
-    conversation = ReferConversation.query.get(conversation_id)
-    if not conversation:
-        return jsonify({'error': 'Conversation not found'}), 404
-
-    feedback_content = await generate_refer_feedback(conversation)
-    return jsonify({'status': 'Conversation closed', 'feedback': feedback_content})
 
 
 # Route to load products for selection
@@ -120,8 +108,10 @@ async def manage_conversation(product_name):
         session['language'] = language
         user_answer = request.json.get('user_transcript')
 
+
         # Step 2: Check if it's a new conversation
         conversation_id = session.get('conversation_id')
+
 
         # Log incoming request details
         current_app.logger.info(f"Received conversation ID: {conversation_id}, User Answer: {user_answer}, Action: {action}")
@@ -133,6 +123,10 @@ async def manage_conversation(product_name):
             session['score'] = 0
             session['questions_asked'] = 0
             session['correct_answers'] = 0
+
+            # If there's user input at the start, save it as the first message
+            if user_answer:
+                add_refer_message(conversation_id, sender='user', content=user_answer)
 
             # Fetch both questions and their corresponding answers based on language
             if language == "Hindi":
@@ -189,6 +183,7 @@ async def manage_conversation(product_name):
 
             # Synthesize and return the first question with audio
             conversation_context = f"{coach_greeting}\n{question_prompt}"
+            add_refer_message(conversation_id, sender='Question', content=question_prompt)
 
             current_app.logger.info(f"Generating speech for: {conversation_context}")
             audio_file_name = await synthesize_speech(conversation_context, language)
@@ -206,6 +201,7 @@ async def manage_conversation(product_name):
 
             # Step 3: Handle actions for an ongoing conversation
         if action == 'answer':
+
             # Provide feedback for the current answer
             if 'shuffled_questions' not in session or 'questions_asked' not in session:
                 current_app.logger.error("Session data missing: shuffled_questions or questions_asked")
@@ -254,9 +250,11 @@ async def manage_conversation(product_name):
             user_answer2 = user_answer1.replace('*', '')
             current_app.logger.info(f"user_answer 02: {user_answer2}")
             current_app.logger.info(f"language: {language}")
-
+            # Log the user's response
+            add_refer_message(conversation_id, sender='user', content=user_answer2)
             # Generate feedback for the current question
             feedback_text = await get_coach_feedback(user_answer2, correct_answer, language)
+            add_refer_message(conversation_id, sender='AI', content=feedback_text)
 
             # Update session score based on the feedback
             if "आपका उत्तर सही है" in feedback_text.lower() or "your answer is correct" in feedback_text.lower():
@@ -284,6 +282,7 @@ async def manage_conversation(product_name):
 
         elif action == 'next_question':
             # Provide the next question if available
+
             session['questions_asked'] += 1
             session.modified = True  # Ensure session update is persisted
 
@@ -294,7 +293,22 @@ async def manage_conversation(product_name):
                 final_feedback = generate_feedback(final_score, session['total_questions'])
                 final_feedback_audio_file_name = await synthesize_speech(final_feedback, language)
 
-                session.clear()  # End the quiz after feedback
+                # Add this code here to save the final feedback to the database
+                final_feedback_text = final_feedback
+                try:
+                    feedback_entry = ReferFeedback(
+                        conversation_id=conversation_id,
+                        content=final_feedback_text,
+                        score=final_score,
+                        category=final_feedback,
+                        timestamp=datetime.utcnow()
+                    )
+                    db.session.add(feedback_entry)
+                    db.session.commit()
+                    current_app.logger.info("Feedback saved successfully in the database.")
+                except Exception as e:
+                    db.session.rollback()
+                    current_app.logger.error(f"Error saving feedback to the database: {e}")
 
                 return jsonify({
                     "final_feedback_text": final_feedback,
@@ -311,6 +325,7 @@ async def manage_conversation(product_name):
 
             # Get the next question
             next_question = session['shuffled_questions'][next_question_index]['question']
+            add_refer_message(conversation_id, sender='Question', content=next_question)
             next_question_audio_file_name = await synthesize_speech(next_question, language)
 
             return jsonify({
@@ -431,10 +446,15 @@ def generate_feedback(score, total_questions):
 
 # Initialize a new conversation in the database
 def initialize_refer_conversation(user_id, product_name):
-    conversation = Conversation(user_id=user_id, persona=product_name)
+    conversation = ReferConversation(user_id=user_id, product_id=product_name)
     db.session.add(conversation)
     db.session.commit()
     return conversation.id
+
+def add_refer_message(conversation_id, sender, content):
+    message = ReferMessage(conversation_id=conversation_id, sender=sender, content=content)
+    db.session.add(message)
+    db.session.commit()
 
 
 

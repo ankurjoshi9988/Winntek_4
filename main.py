@@ -5,7 +5,7 @@ from flask import Flask, request, render_template, jsonify, send_from_directory,
 from flask_session import Session
 from flask_login import login_required, current_user
 from datetime import timedelta
-from conversation_service import start_conversation, add_message, close_conversation, get_past_conversations, start_refer_conversation, add_refer_message, generate_refer_feedback
+from conversation_service import start_conversation, add_message, close_conversation, get_past_conversations
 import re
 from flask_wtf.csrf import CSRFProtect, generate_csrf
 import random
@@ -19,6 +19,7 @@ import glob
 import csv
 from knowledge import knowledge_bp
 from reflect import reflect_bp
+from analytics import analytics_bp
 from sqlalchemy import func
 
 
@@ -115,6 +116,7 @@ app.register_blueprint(knowledge_bp)
 app.register_blueprint(reflect_bp, url_prefix='/reflect')
 app.register_blueprint(auth_bp)
 app.register_blueprint(admin_bp, url_prefix='/admin')
+app.register_blueprint(analytics_bp)
 
 
 logging.basicConfig(
@@ -361,6 +363,12 @@ def get_persona_details(persona):
 @login_required
 def index():
     return render_template('index.html')
+
+@app.route('/analytics')
+@login_required
+def analytics():
+    return render_template('analytics.html')
+
 
 
 @app.route("/get_chat")

@@ -114,7 +114,7 @@ class ReferMessage(db.Model):
     timestamp = db.Column(db.DateTime, default=db.func.current_timestamp())
 
 class ReferFeedback(db.Model):
-    __tablename__ = 'refer_feedback'  # Explicit table name
+    __tablename__ = 'reflect_feedback'  # Explicit table name
     id = db.Column(db.Integer, primary_key=True)
     conversation_id = db.Column(db.Integer, db.ForeignKey('refer_conversations.id'), nullable=False)
     content = db.Column(db.Text, nullable=False)

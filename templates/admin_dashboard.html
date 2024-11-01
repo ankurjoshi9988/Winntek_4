@@ -56,6 +56,9 @@
             <li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
         </ul>
     </nav>
+	
+	<!-- Report Button for Redirecting to Analytics Page -->
+    <button class="report-button" onclick="window.location.href = '{{ url_for('analytics') }}'">View Report</button>
     
     <h2>Users</h2>
     <table>
