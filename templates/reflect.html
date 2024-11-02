@@ -37,17 +37,53 @@
 
 
 
-        body, html {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
+    body, html {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 0;
+    }
+.heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background-color: #fff;
+    padding: 10px 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    z-index: 1;
+}
+
+	.heading h2 {
+		flex: 1;
+		text-align: center;
+		margin: 0;
+	}
+
+	.back-button {
+		margin-right: auto; /* Pushes the button to the right */
+		text-decoration: none;
+		color: black;
+		font-weight: bold;
+	}
+		.credits-display {
+			display: flex;  
+			justify-content: flex-end;  /* Aligns content to the right */            
+            background-color: #f9f9f9;
+            font-size: 14px;
+            font-weight: bold;            
+            
+            font-size: 14px;
+            font-weight: bold;
         }
-        .heading {
-            text-align: center;
+        .language-select {		
             margin-bottom: 20px;
         }
-        .product-select, .language-select {
+		.product-select {			
             margin-bottom: 20px;
         }
         .conversation-box {
@@ -93,17 +129,19 @@
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
             margin-bottom: 70px;
         }
-		.credits-display {
-			display: flex;  
-			justify-content: flex-end;  /* Aligns content to the right */			
-            padding: 10px;
-            background-color: #f9f9f9;
-            font-size: 14px;
-            font-weight: bold;            
-            margin-bottom: 10px;
-            font-size: 14px;
-            font-weight: bold;
+
+        nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #333;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            background-color: #404040;
         }
+
         nav {
             font-family: 'Roboto', sans-serif;
             display: flex;
@@ -114,71 +152,88 @@
             position: fixed;
             bottom: 0;
             width: 100%;
-            z-index: 1000;
         }
+
         nav a {
             color: white;
             text-decoration: none;
             text-align: center;
-            font-size: 25px;
-            flex: 1 1 0;
+            font-size: 9px;
+            flex: 1 1 0; /* Ensures equal distribution and alignment */
         }
+
         nav a img {
-            display: block;
+            display: block; /* Centers image in its flex container */
             margin: 0 auto;
             width: 24px;
             height: 24px;
         }
+
         nav a:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-            transition: background-color 0.3s ease;
+            background-color: rgba(255, 255, 255, 0.1); /* Adjust opacity as needed */
+            transition: background-color 0.3s ease; /* Smooth transition */
         }
+		.custom-container1 {
+			max-height: calc(100vh - 80px);
+            overflow-y: auto;
+            padding-top: 60px;
+            overflow-x: hidden;			
+		}
+		.custom-container2 {
+			padding: 20px;
+			background-color: #fff;
+			border-radius: 10px;
+			box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+			margin-bottom: 20px;
+			max-width: 600px; /* Adjust as necessary */
+			margin: 0 auto; /* Center the form */
+		}
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="heading">
-            <h1>Reflect</h1>
-        </div>
-		<div class="credits-display">
-            Credits: <span id="credits"></span>
-        </div>
-        <div class="language-select">
-            <label for="language">Select Language:</label>
-            <select id="language" name="language">
-                <option value="Hindi">Hindi</option>
-                <option value="English">English</option>
-            </select>
-        </div>
-        <div class="product-select">
-            <label for="product">Select a Product:</label>
-            <select id="product" name="product">
-                <option value="">--Select a Product--</option>
-            </select>
-        </div>
-        <div class="input-box">
-            <button id="startConversation" onclick="startConversation()">Start Conversation</button>
-        </div>
+    
+		<div class="custom-container1">
+			<div class="heading">
+				<a href="/" class="back-button">Back</a>
+				<h2>Reflect</h2>
+				<div class="credits-display">
+				Credits: <span id="credits"></span>
+				</div>
+			</div>
+		</div>	
+		<div class="custom-container2">
+			<div class="language-select">
+				<label for="language">Select Language:</label>
+				<select id="language" name="language">
+					<option value="Hindi">Hindi</option>
+					<option value="English">English</option>
+				</select>
+			</div>
+			<div class="product-select">
+				<label for="product">Select a Product:</label>
+				<select id="product" name="product">
+					<option value="">--Select a Product--</option>
+				</select>
+			</div>
+			<div class="input-box">
+				<button id="startConversation" onclick="startConversation()">Start Conversation</button>
+			</div>
 
-        <div class="conversation-box" id="conversationBox">
-            <!-- Conversation messages will be shown here -->
-        </div>
-        <div class="input-box">
-            <button id="startVoice" onclick="startVoiceRecognition()" disabled>Start Voice Recognition</button>
-        </div>
-		<div class="input-box">
-			<button id="stopVoice" onclick="stopVoiceRecognition(true)" disabled>Stop Recognition</button>
-		</div>		
-		<div class="input-box">
-			<button id="nextQuestion" onclick="handleNextButtonClick()" disabled>Next Question</button>
+			<div class="conversation-box" id="conversationBox">
+				<!-- Conversation messages will be shown here -->
+			</div>
+			<div class="input-box">
+				<button id="startVoice" onclick="startVoiceRecognition()" disabled>Start Voice Recognition</button>
+			</div>
+			<div class="input-box">
+				<button id="stopVoice" onclick="stopVoiceRecognition(true)" disabled>Stop Recognition</button>
+			</div>		
+			<div class="input-box">
+				<button id="nextQuestion" onclick="handleNextButtonClick()" disabled>Next Question</button>
+			</div>
 		</div>
-
-    </div>
-    <nav>
-        <a href="/"><img src="/static/home_icon.png" alt="Home Icon">Home</a>
-        <a href="/recall"><img src="/static/recall_icon.png" alt="Recall Icon">Recall</a>
-        <a href="/rehearse"><img src="/static/rehearse_icon.png" alt="Rehearse Icon">Rehearse</a>
-    </nav>
+    
+  
     <script>
         var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         var conversationId = null;  // Initialize to null
@@ -751,5 +806,10 @@ function playAudioResponse(audioUrl, callback) {
 
 																							
     </script>
+	  <nav>
+        <a href="/"><img src="/static/home_icon.png" alt="Home Icon">Home</a>
+        <a href="/recall"><img src="/static/recall_icon.png" alt="Recall Icon">Recall</a>
+        <a href="/rehearse.html"><img src="static/rehearse_icon.png" alt="Rehearse Icon">Rehearse</a>
+    </nav>
 </body>
 </html>

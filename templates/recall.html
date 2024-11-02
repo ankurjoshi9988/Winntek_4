@@ -20,9 +20,42 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+			background-color: #f1f1f1;
         }
+		.heading {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			position: fixed;
+			top: 0;
+			left: 0;
+			right: 0;
+			background-color: #fff;
+			padding: 10px 10px;
+			border-radius: 5px;
+			box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+			z-index: 1;
+		}
 
- 
+		
+		.heading h2 {
+			flex: 1;
+			text-align: center;
+			margin: 0;
+		}
+
+		.back-button {
+			margin-right: auto; /* Pushes the button to the right */
+			text-decoration: none;
+			color: black;
+			font-weight: bold;
+		}
+		.credits-display {
+            display: flex;
+            justify-content: flex-end;
+            font-size: 14px;
+            font-weight: bold;
+        }
 
         input[type="file"], input[type="text"], input[type="submit"], button {
             width: 100%;
@@ -71,7 +104,19 @@
         }
 
         nav {
-            width: 100%;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #333;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            background-color: #404040;
+        }
+
+        nav {
+            font-family: 'Roboto', sans-serif;
             display: flex;
             justify-content: space-around;
             align-items: center;
@@ -79,25 +124,27 @@
             padding: 10px 0;
             position: fixed;
             bottom: 0;
+            width: 100%;
         }
 
         nav a {
             color: white;
             text-decoration: none;
             text-align: center;
-            font-size: 12px;
+            font-size: 9px;
+            flex: 1 1 0; /* Ensures equal distribution and alignment */
         }
 
         nav a img {
-            display: block;
+            display: block; /* Centers image in its flex container */
             margin: 0 auto;
             width: 24px;
             height: 24px;
         }
 
         nav a:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-            transition: background-color 0.3s ease;
+            background-color: rgba(255, 255, 255, 0.1); /* Adjust opacity as needed */
+            transition: background-color 0.3s ease; /* Smooth transition */
         }
 
         .loading-indicator {
@@ -245,36 +292,59 @@
             background-color: #f8d7da;
             text-align: left;
         }
+		.custom-container1 {
+			max-height: calc(100vh - 80px);
+            overflow-y: auto;
+            padding-top: 60px;
+            overflow-x: hidden;			
+		}
+		.custom-container2 {
+			padding: 20px;
+			background-color: #fff;
+			border-radius: 10px;
+			box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+			margin-bottom: 20px;
+			
+			margin: 0 auto; /* Center the form */
+		}
 
     </style>
 </head>
 <body>
-    <div class="loading-indicator">Uploading...</div>
-    <div id="chat-container">
-		<!-- Loading indicator will appear here while the response is loading -->
-		<div id="loading-indicator-ask" style="display: none;">Loading...</div>
-		<!-- Chat messages will be appended here -->
-	</div>
-
-
-    <div class="bottom-container">
-        <div id="upload-section" class="form-container">
-            <form id="upload_form" action="/recall/upload" method="post" enctype="multipart/form-data">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <input type="file" id="pdf_docs" name="pdf_docs" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv">
-                <input id="upload_button" type="submit" value="Upload" disabled>
-            </form>
-        </div>
-		<div id="ask-section" class="form-container" style="display:none;">
-			<form id="ask_form" action="/recall/ask" method="post">
-				<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-				<input type="text" id="question" name="question" placeholder="Ask your question here..." value="">
-				<input id="ask_button" type="submit" value="Ask" class="ask-button">
-			</form>			
-			<button id="toggleButton" class="toggle-button" type="button" onclick="toggleSections()">Upload Document</button>
+	<div class="custom-container1">
+		<div class="heading">
+			<a href="/" class="back-button">Back</a>
+			<h2>Recall</h2>
+			<div class="credits-display">
+                Credits: <span id="credits"></span>
+            </div>			
 		</div>
-
-    </div>
+	</div>
+	
+		<div class="loading-indicator">Uploading...</div>
+		<div id="chat-container">
+			<!-- Loading indicator will appear here while the response is loading -->
+			<div id="loading-indicator-ask" style="display: none;">Loading...</div>
+			<!-- Chat messages will be appended here -->
+		</div>
+		<div class="bottom-container">
+			<div id="upload-section" class="form-container">
+				<form id="upload_form" action="/recall/upload" method="post" enctype="multipart/form-data">
+					<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+					<input type="file" id="pdf_docs" name="pdf_docs" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv">
+					<input id="upload_button" type="submit" value="Upload" disabled>
+				</form>
+			</div>
+			<div id="ask-section" class="form-container" style="display:none;">
+				<form id="ask_form" action="/recall/ask" method="post">
+					<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+					<input type="text" id="question" name="question" placeholder="Ask your question here..." value="">
+					<input id="ask_button" type="submit" value="Ask" class="ask-button">
+				</form>			
+				<button id="toggleButton" class="toggle-button" type="button" onclick="toggleSections()">Upload Document</button>
+			</div>
+		</div>
+	
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
@@ -288,7 +358,46 @@
 			var loadingIndicator = document.createElement('div');
 			loadingIndicator.id = 'loading-indicator-ask';
 			loadingIndicator.textContent = 'Loading...';
-			loadingIndicator.style.display = 'none'; 
+			loadingIndicator.style.display = 'none';
+
+			// Fetch user's credits on page load
+			
+			fetch('/auth/get_credits')
+				.then(response => response.json())
+				.then(data => {
+					credits = data.credits;
+					document.getElementById('credits').textContent = credits;
+					if (credits <= 0) {
+						disableAskButton();
+					}
+				});
+			
+
+			// Function to disable the Ask button
+			function disableAskButton() {
+				const askButton = document.getElementById("ask_button");
+				askButton.disabled = true;
+				askButton.classList.add("disabled");
+			}		
+			// Function to deduct a credit
+			function deductCredit() {
+				fetch('/auth/deduct_credit', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						"X-CSRFToken": csrfToken
+					}
+				})
+				.then(response => response.json())
+				.then(data => {
+					credits = data.credits;
+					document.getElementById('credits').textContent = credits;
+					if (credits <= 0) {
+						disableAskButton();
+					}
+				})
+				.catch(error => console.error('Error deducting credit:', error));
+			}			
 
 
             document.getElementById('pdf_docs').addEventListener('change', function() {
@@ -384,13 +493,22 @@
 
                 var question = questionInput.value.trim();
                 console.log('Submitting question:', question);
+				if (credits <= 0) {
+					alert('Insufficient credits to ask a question');
+					return;
+				}
 
                 if (question) {
+				    // Deduct a credit when the first question is asked
+					if (credits > 0) {
+						deductCredit();
+					}
                     // Append user question to the chat
                     appendMessage(question, 'user-message');
 					// Show the loading indicator right below the user's question
 					chatContainer.appendChild(loadingIndicator);
 					loadingIndicator.style.display = 'block';
+					
 
                     $.ajax({
                         url: this.action,
@@ -442,9 +560,9 @@
         }
     </script>
     <nav>
-        <a href="/"><img src="/static/home_icon.png" alt="Home Icon">Home</a>
-        <a href="/recall"><img src="/static/recall_icon.png" alt="Recall Icon">Recall</a>
+        <a href="/"><img src="/static/home_icon.png" alt="Home Icon">Home</a>        
         <a href="/reflect.html"><img src="/static/reflect_icon.png" alt="Reflect Icon">Reflect</a>
+		<a href="/rehearse.html"><img src="/static/rehearse_icon.png" alt="Rehearse Icon">Rehearse</a>
     </nav>
 </body>
 </html>
