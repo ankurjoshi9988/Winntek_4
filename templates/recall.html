@@ -359,6 +359,8 @@
 			loadingIndicator.id = 'loading-indicator-ask';
 			loadingIndicator.textContent = 'Loading...';
 			loadingIndicator.style.display = 'none';
+			let credits;
+			let hasDeductedCredit = false;  // Declare and initialize the variable
 
 			// Fetch user's credits on page load
 			
@@ -381,6 +383,7 @@
 			}		
 			// Function to deduct a credit
 			function deductCredit() {
+				if (hasDeductedCredit) return; // Only deduct credit once
 				fetch('/auth/deduct_credit', {
 					method: 'POST',
 					headers: {
@@ -395,6 +398,7 @@
 					if (credits <= 0) {
 						disableAskButton();
 					}
+					hasDeductedCredit = true; // Set flag to true after deducting
 				})
 				.catch(error => console.error('Error deducting credit:', error));
 			}			
@@ -500,7 +504,7 @@
 
                 if (question) {
 				    // Deduct a credit when the first question is asked
-					if (credits > 0) {
+					if (!hasDeductedCredit) {
 						deductCredit();
 					}
                     // Append user question to the chat
