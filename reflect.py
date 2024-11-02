@@ -52,6 +52,16 @@ def add_refer_message():
     return jsonify({'status': 'Message added'}), 200
 
 
+@reflect_bp.route('/reset_session', methods=['POST'])
+@login_required
+def reset_session():
+    # Clear session data related to the conversation
+    session.pop('conversation_id', None)
+    session.pop('shuffled_questions', None)
+    session.pop('questions_asked', None)
+    session.pop('correct_answers', None)
+    session.modified = True
+    return jsonify({"status": "Session reset successfully"})
 
 
 

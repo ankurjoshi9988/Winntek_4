@@ -93,6 +93,17 @@
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
             margin-bottom: 70px;
         }
+		.credits-display {
+			display: flex;  
+			justify-content: flex-end;  /* Aligns content to the right */			
+            padding: 10px;
+            background-color: #f9f9f9;
+            font-size: 14px;
+            font-weight: bold;            
+            margin-bottom: 10px;
+            font-size: 14px;
+            font-weight: bold;
+        }
         nav {
             font-family: 'Roboto', sans-serif;
             display: flex;
@@ -128,6 +139,9 @@
     <div class="container">
         <div class="heading">
             <h1>Reflect</h1>
+        </div>
+		<div class="credits-display">
+            Credits: <span id="credits"></span>
         </div>
         <div class="language-select">
             <label for="language">Select Language:</label>
@@ -169,6 +183,50 @@
         var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         var conversationId = null;  // Initialize to null
         var selectedLanguage = "Hindi";  // Default to Hindi
+		
+		// Fetch user's credits on page load
+        document.addEventListener('DOMContentLoaded', function () {
+            fetch('/auth/get_credits')
+                .then(response => response.json())
+                .then(data => {
+                    credits = data.credits;
+                    document.getElementById('credits').textContent = credits;
+                    if (credits <= 0) {
+                        disableStartConversationButton();
+                    }
+                });
+
+            // Load products
+            loadProducts();
+        });
+		
+		// Function to disable Start Conversation button
+        function disableStartConversationButton() {
+            const startButton = document.getElementById("startConversation");
+            startButton.disabled = true;
+            startButton.style.backgroundColor = "#cccccc";
+            startButton.style.cursor = "not-allowed";
+        }
+		
+		// Function to deduct a credit
+        function deductCredit() {
+            fetch('/auth/deduct_credit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    "X-CSRFToken": csrfToken
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                credits = data.credits;
+                document.getElementById('credits').textContent = credits;
+                if (credits <= 0) {
+                    disableStartConversationButton();
+                }
+            })
+            .catch(error => console.error('Error deducting credit:', error));
+        }
 
         // Load available products
         function loadProducts() {
@@ -392,6 +450,11 @@ function handleNextButtonClick() {
                 alert('Please select a product');
                 return;
             }
+			
+			if (credits <= 0) {
+                alert('Insufficient credits to start a conversation');
+                return;
+            }
 
             $('#startConversation').prop('disabled', true);  // Disable button to prevent double clicks
 
@@ -411,6 +474,7 @@ function handleNextButtonClick() {
                     console.log("Conversation started:", response);
                     if (response.conversation_id) {
                         conversationId = response.conversation_id;
+						deductCredit();  // Deduct a credit when the conversation starts
                         handleConversationResponse(response);
                     }
                 },

@@ -391,6 +391,12 @@ def get_chat():
 @app.route('/reflect.html')
 @login_required
 def refer():
+    # Clear conversation-related session data when loading the Reflect page
+    session.pop('conversation_id', None)
+    session.pop('shuffled_questions', None)
+    session.pop('questions_asked', None)
+    session.pop('correct_answers', None)
+    session.modified = True  # Ensure session changes are saved
     return render_template('reflect.html')
 
 
